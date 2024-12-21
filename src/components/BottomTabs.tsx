@@ -116,11 +116,11 @@ const styles = StyleSheet.create({
   },
   extraView: {
     position: 'absolute',
-    height: 70,
-    width: 100,
+    height: 68,
+    width: 105,
     borderRadius: 40,
     backgroundColor: 'rgb(255, 191, 28)',
     alignSelf: 'center',
-    marginTop: 7,
+    marginTop: 6.5,
   },
 });

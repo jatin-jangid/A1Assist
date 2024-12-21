@@ -17,8 +17,6 @@ const styles = StyleSheet.create({
     alignItems: "center", 
     flexDirection: "row", 
     height: 50,
-    borderColor:'red',
-    borderWidth:1,
     backgroundColor: 'rgb(255, 191, 28)',
   },
   headerText: {
@@ -30,8 +28,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     includeFontPadding: false,
     padding: 0,
-    color: 'rgb(250, 244, 223)',
+    // color: 'rgb(250, 244, 223)',
+    color: 'rgb(0, 0, 0)',
     textAlign: 'center',
-    fontSize: 24,
+    fontSize: 28,
   }
 })
