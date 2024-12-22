@@ -1,27 +1,10 @@
 import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {View, Image, Text, StyleSheet} from 'react-native';
-import Wash from './Wash';
-import Iron from './Iron';
-import Roll from './Roll';
+import List from './List';
 
 const Tab = createBottomTabNavigator();
 
-function HomeScreen() {
-  return (
-    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Text>Home Screen</Text>
-    </View>
-  );
-}
-
-function SettingsScreen() {
-  return (
-    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Text>Settings Screen</Text>
-    </View>
-  );
-}
 const getIcon = (name: string, focused: boolean) => {
   switch (name) {
     case 'Wash':
@@ -55,23 +38,25 @@ export default function AppNavigator() {
           );
         },
         tabBarLabelStyle: styles.iconText,
-        // tabBarShowLabel: false,
         tabBarStyle: styles.tabbarStyle,
       })}>
       <Tab.Screen
         name="Wash"
-        component={Wash}
+        component={List}
         options={{headerShown: false}}
+        initialParams={{fromScreen : 'Wash', buttonColor: '#00becc', rates: 12}}
       />
       <Tab.Screen
         name="Press"
-        component={Iron}
+        component={List}
         options={{headerShown: false}}
+        initialParams={{fromScreen : 'Press', buttonColor: '#00cc88', rates: 4}}
       />
       <Tab.Screen
         name="Roll"
-        component={Roll}
+        component={List}
         options={{headerShown: false}}
+        initialParams={{fromScreen : 'Roll', buttonColor: '#rgb(255, 191, 28)', rates: 20}}
       />
     </Tab.Navigator>
   );
@@ -92,8 +77,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     // marginBottom: 10,
     marginTop: 10,
-    // borderColor: 'white',
-    // borderWidth: 1,
     zIndex: 1,
   },
   tabbarStyle: {

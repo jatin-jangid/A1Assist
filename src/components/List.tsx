@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,13 @@ import {
   Button,
   Alert,
   Image,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {calenderImage} from './assets';
 import moment from 'moment';
 import {Calendar} from 'react-native-calendars';
 import DatePicker from 'react-native-date-picker';
+import Header from './Header';
 interface ListItem {
   id: number;
   quantity: number;
@@ -22,7 +24,7 @@ interface ListItem {
   totalAmount: number;
 }
 
-export default function App() {
+const List = ({props, navigation, route}: any) => {
   const [list, setList] = useState<ListItem[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<ListItem | null>(null);
@@ -30,8 +32,14 @@ export default function App() {
   const [date, setDate] = useState<string>('');
   const [isCalenderVisible, setIsCalenderVisible] = useState(false);
 
+  const {buttonColor, fromScreen, rates} = route.params;
+
+  useEffect(() => {
+    // console.log(props.buttonColor)
+    
+  }, []);
+
   const handleAddItem = () => {
-    // Alert.alert("OPEM")
     setModalVisible(true);
     const nowDate = new Date().toISOString();
     const momentDate = moment(nowDate).format('DD-MM-YYYY');
@@ -45,7 +53,7 @@ export default function App() {
       id: selectedItem ? selectedItem.id : Date.now(),
       quantity: parseInt(quantity, 10),
       date,
-      totalAmount: parseInt(quantity, 10) * 12,
+      totalAmount: parseInt(quantity, 10) * rates,
     };
 
     if (selectedItem) {
@@ -72,10 +80,12 @@ export default function App() {
 
   const calendarModals = () => {
     return (
-      <Modal visible={isCalenderVisible} transparent={true}>
-        {/* <View style={styles.calendarViewedit}> */}
-        <DatePicker
+      <TouchableWithoutFeedback onPress={() => setIsCalenderVisible(false)}>
+        <Modal visible={isCalenderVisible} transparent={true}>
+          <View style={styles.calendarViewedit}>
+            <DatePicker
           modal
+          mode='date'
           open={isCalenderVisible}
           date={new Date()}
           onConfirm={date => {
@@ -86,27 +96,32 @@ export default function App() {
             setIsCalenderVisible(false);
           }}
         />
-        {/* <Calendar
-            testID="calendarTestIdsz"
-            onDayPress={(date: any) => setCalenderDate(date)}
-            style={{borderRadius: 10, width: '90%', alignSelf: 'center'}}
-          /> */}
-        {/* </View> */}
-      </Modal>
+            {/* <Calendar
+              testID="calendarTestIdsz"
+              onDayPress={(date: any) => setCalenderDate(date)}
+              style={{borderRadius: 10, width: '90%', alignSelf: 'center'}}
+            /> */}
+          </View>
+        </Modal>
+      </TouchableWithoutFeedback>
     );
   };
 
-  const setCalenderDate = (date: {
-    dateString: string;
-    day: string;
-    month: string;
-    year: string;
-    timestamp: string;
-  } | any) => {
+  const setCalenderDate = (
+    date:
+      | {
+          dateString: string;
+          day: string;
+          month: string;
+          year: string;
+          timestamp: string;
+        }
+      | any,
+  ) => {
     // const calenderDate = moment(date.dateString).format('dd-mm-yyyy');
     let calenderDate = '';
-    console.log("date.dateString: " + date.dateString);
-    if(date.dateString){
+    console.log('date.dateString: ' + date.dateString);
+    if (date.dateString) {
       calenderDate = `${date.day}-${date.month}-${date.year}`;
     } else {
       calenderDate = moment(date).format('DD-MM-YYYY');
@@ -124,68 +139,75 @@ export default function App() {
   };
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={list}
-        keyExtractor={item => item.id.toString()}
-        renderItem={({item}) => (
-          <TouchableOpacity
-            style={styles.listItem}
-            onPress={() => handleEditItem(item)}>
-            <Text style={styles.text}>Total Amount: ₹{item.totalAmount}</Text>
-            <Text style={styles.text}>Date: {item.date}</Text>
-            <Text style={styles.text}>Quantity: {item.quantity}</Text>
-          </TouchableOpacity>
-        )}
-        ListEmptyComponent={<Text style={styles.emptyText}>No items yet.</Text>}
-      />
+    <>
+      {/* <Header title={fromScreen} /> */}
+      <View style={styles.container}>
+        <FlatList
+          data={list}
+          keyExtractor={item => item.id.toString()}
+          renderItem={({item}) => (
+            <TouchableOpacity
+              style={styles.listItem}
+              onPress={() => handleEditItem(item)}>
+              <Text style={styles.text}>Total Amount: ₹{item.totalAmount}</Text>
+              <Text style={styles.text}>Date: {item.date}</Text>
+              <Text style={styles.text}>Quantity: {item.quantity}</Text>
+            </TouchableOpacity>
+          )}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No items yet.</Text>
+          }
+        />
 
-      {/* Add Button */}
-      <TouchableOpacity style={styles.addButton} onPress={handleAddItem}>
-        <Text style={styles.addButtonText}>+</Text>
-      </TouchableOpacity>
+        {/* Add Button */}
+        <TouchableOpacity
+          style={[styles.addButton, {backgroundColor: buttonColor}]}
+          onPress={handleAddItem}>
+          <Text style={styles.addButtonText}>+</Text>
+        </TouchableOpacity>
 
-      {/* Modal */}
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text>Quantity : </Text>
-            <TextInput
-              placeholder="Enter Quantity"
-              placeholderTextColor={'black'}
-              style={styles.input}
-              keyboardType="numeric"
-              value={quantity}
-              onChangeText={setQuantity}
-            />
-            <Text>Select Date : </Text>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        {/* Modal */}
+        <Modal visible={modalVisible} animationType="slide" transparent>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text>Quantity : </Text>
               <TextInput
-                placeholder="Enter Date"
+                placeholder="Enter Quantity"
                 placeholderTextColor={'black'}
                 style={styles.input}
-                value={date}
-                onChangeText={setDate}
-                editable={false}
+                keyboardType="numeric"
+                value={quantity}
+                onChangeText={setQuantity}
               />
-              <TouchableOpacity onPress={() => setIsCalenderVisible(true)}>
-                <Image
-                  source={calenderImage}
-                  style={{height: 25, width: 25, left: -40, zIndex: 1}}
+              <Text>Select Date : </Text>
+              <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <TextInput
+                  placeholder="Enter Date"
+                  placeholderTextColor={'black'}
+                  style={styles.input}
+                  value={date}
+                  onChangeText={setDate}
+                  editable={false}
                 />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.modalButtons}>
-              <Button title="Cancel" onPress={() => setModalVisible(false)} />
-              <Button title="Save" onPress={handleSaveItem} />
+                <TouchableOpacity onPress={() => setIsCalenderVisible(true)}>
+                  <Image
+                    source={calenderImage}
+                    style={{height: 25, width: 25, left: -40, zIndex: 1}}
+                  />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.modalButtons}>
+                <Button title="Cancel" onPress={() => setModalVisible(false)} />
+                <Button title="Save" onPress={handleSaveItem} />
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-      {calendarModals()}
-    </View>
+        </Modal>
+        {calendarModals()}
+      </View>
+    </>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -269,3 +291,5 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 });
+
+export default List;
