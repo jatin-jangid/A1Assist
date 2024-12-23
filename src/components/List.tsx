@@ -12,6 +12,7 @@ import {
   Image,
   TouchableWithoutFeedback,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {calenderImage} from './assets';
 import moment from 'moment';
 import {Calendar} from 'react-native-calendars';
@@ -36,8 +37,30 @@ const List = ({props, navigation, route}: any) => {
 
   useEffect(() => {
     // console.log(props.buttonColor)
-    
+    getDataFromStorage();
   }, []);
+
+  useEffect(() => {
+    saveDataToStorage();
+  }, [list]);
+
+  const getDataFromStorage = async () => {
+    try {
+      const data = await AsyncStorage.getItem(fromScreen);
+      if (data) {
+        setList(JSON.parse(data));
+      }
+    } catch (error) {
+      console.error('Error reading data from storage:', error);
+    }
+  };
+  const saveDataToStorage = async () => {
+    try {
+      await AsyncStorage.setItem(fromScreen, JSON.stringify(list));
+    } catch (error) {
+      console.error('Error saving data to storage:', error);
+    }
+  };
 
   const handleAddItem = () => {
     setModalVisible(true);
@@ -48,7 +71,7 @@ const List = ({props, navigation, route}: any) => {
     setDate(momentDate);
   };
 
-  const handleSaveItem = () => {
+  const handleSaveItem = async () => {
     const newItem: ListItem = {
       id: selectedItem ? selectedItem.id : Date.now(),
       quantity: parseInt(quantity, 10),
@@ -71,7 +94,7 @@ const List = ({props, navigation, route}: any) => {
     setModalVisible(false);
   };
 
-  const handleEditItem = (item: ListItem) => {
+  const handleEditItem = async (item: ListItem) => {
     setSelectedItem(item);
     setQuantity(item.quantity.toString());
     setDate(item.date);
@@ -84,18 +107,18 @@ const List = ({props, navigation, route}: any) => {
         <Modal visible={isCalenderVisible} transparent={true}>
           <View style={styles.calendarViewedit}>
             <DatePicker
-          modal
-          mode='date'
-          open={isCalenderVisible}
-          date={new Date()}
-          onConfirm={date => {
-            console.log(date);
-            setCalenderDate(date);
-          }}
-          onCancel={() => {
-            setIsCalenderVisible(false);
-          }}
-        />
+              modal
+              mode="date"
+              open={isCalenderVisible}
+              date={new Date()}
+              onConfirm={date => {
+                console.log(date);
+                setCalenderDate(date);
+              }}
+              onCancel={() => {
+                setIsCalenderVisible(false);
+              }}
+            />
             {/* <Calendar
               testID="calendarTestIdsz"
               onDayPress={(date: any) => setCalenderDate(date)}
@@ -140,22 +163,62 @@ const List = ({props, navigation, route}: any) => {
 
   return (
     <>
-      {/* <Header title={fromScreen} /> */}
+      <Header title={fromScreen} />
       <View style={styles.container}>
         <FlatList
           data={list}
           keyExtractor={item => item.id.toString()}
           renderItem={({item}) => (
             <TouchableOpacity
-              style={styles.listItem}
+              style={[
+                styles.listItem,
+                {
+                  flex: 1,
+                  justifyContent: 'space-evenly',
+                  flexDirection: 'row',
+                  borderColor: 'green',
+                  borderWidth: 1,
+                },
+              ]}
               onPress={() => handleEditItem(item)}>
-              <Text style={styles.text}>Total Amount: ₹{item.totalAmount}</Text>
-              <Text style={styles.text}>Date: {item.date}</Text>
-              <Text style={styles.text}>Quantity: {item.quantity}</Text>
+              <View
+                style={{
+                  borderColor: 'red',
+                  borderWidth: 1,
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'flex-start',
+                }}>
+                <View style={{}}>
+                  <Text style={styles.heading}>Total Amount:</Text>
+                  <Text style={styles.textUnderHeading}>
+                    ₹{item.totalAmount}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                  <Text style={styles.heading}>Date: </Text>
+                  <Text style={[styles.textUnderHeading,{ fontSize: 14 }]}>{item.date}</Text>
+                </View>
+              </View>
+              <View
+                style={{
+                  borderColor: 'red',
+                  borderWidth: 1,
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <View style={{borderColor: 'red', borderWidth: 1, flex: 1}}>
+                  <Text style={styles.heading}>Quantity:</Text>
+                </View>
+                <View style={{borderColor: 'red', borderWidth: 1, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                  <Text style={styles.styleForQuantity}>{item.quantity}</Text>
+                </View>
+              </View>
             </TouchableOpacity>
           )}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>No items yet.</Text>
+            <Text style={[styles.emptyText]}>No items yet.</Text>
           }
         />
 
@@ -290,6 +353,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
   },
+  heading: {
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  textUnderHeading: {
+    fontWeight: '600',
+    fontSize: 20,
+  },
+  styleForQuantity: {
+    fontWeight: 'bold',
+    fontSize: 40,
+  }
 });
 
 export default List;
