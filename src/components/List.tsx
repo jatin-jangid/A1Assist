@@ -11,9 +11,10 @@ import {
   Alert,
   Image,
   TouchableWithoutFeedback,
+  ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {calenderImage} from './assets';
+import {calenderImage, deleteImage} from './assets';
 import moment from 'moment';
 import {Calendar} from 'react-native-calendars';
 import DatePicker from 'react-native-date-picker';
@@ -32,16 +33,42 @@ const List = ({props, navigation, route}: any) => {
   const [quantity, setQuantity] = useState<string>('');
   const [date, setDate] = useState<string>('');
   const [isCalenderVisible, setIsCalenderVisible] = useState(false);
-
-  const {buttonColor, fromScreen, rates} = route.params;
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [wantToDeleteItem, setWantToDeleteItem] = useState<ListItem | null>(
+    null,
+  );
+  const [errorForQuantity, setErrorForQuantity] = useState(false);
+  const [dynamicMarginBottom, setdynamicMarginBottom] = useState(0);
+  const [loadingForPage, setLoadingForPage] = useState(true);
+  const [loadingForList, setLoadingForList] = useState(true)
+  const {
+    buttonColor,
+    fromScreen,
+    rates,
+    listBackgroundColor,
+    quantityContainerBackgroundColor,
+  } = route.params;
 
   useEffect(() => {
-    // console.log(props.buttonColor)
     getDataFromStorage();
+    setLoadingForPage(true);
   }, []);
 
   useEffect(() => {
     saveDataToStorage();
+    setLoadingForList(true)
+    // const sortedData = [...list].sort(
+    //   (a, b) =>
+    //     new Date(b.date.split('-').reverse().join('-')).getTime() -
+    //     new Date(a.date.split('-').reverse().join('-')).getTime()
+    // );
+
+    // setList(sortedData);
+
+    // console.log("list : ", JSON.stringify(list))
+
+    // let date = new Date()
+    // console.log("date : ", date.toISOString());
   }, [list]);
 
   const getDataFromStorage = async () => {
@@ -49,16 +76,24 @@ const List = ({props, navigation, route}: any) => {
       const data = await AsyncStorage.getItem(fromScreen);
       if (data) {
         setList(JSON.parse(data));
+        setLoadingForPage(false);
+        setLoadingForList(false)
       }
     } catch (error) {
       console.error('Error reading data from storage:', error);
+      setLoadingForPage(false);
+      setLoadingForList(false)
     }
   };
   const saveDataToStorage = async () => {
     try {
       await AsyncStorage.setItem(fromScreen, JSON.stringify(list));
+      setLoadingForPage(false);
+      setLoadingForList(false)
     } catch (error) {
       console.error('Error saving data to storage:', error);
+      setLoadingForPage(false);
+      setLoadingForList(false)
     }
   };
 
@@ -72,6 +107,10 @@ const List = ({props, navigation, route}: any) => {
   };
 
   const handleSaveItem = async () => {
+    if (!quantity) {
+      setErrorForQuantity(true);
+      return;
+    }
     const newItem: ListItem = {
       id: selectedItem ? selectedItem.id : Date.now(),
       quantity: parseInt(quantity, 10),
@@ -103,30 +142,31 @@ const List = ({props, navigation, route}: any) => {
 
   const calendarModals = () => {
     return (
-      <TouchableWithoutFeedback onPress={() => setIsCalenderVisible(false)}>
-        <Modal visible={isCalenderVisible} transparent={true}>
+      <Modal visible={isCalenderVisible} transparent={true}>
+        <TouchableWithoutFeedback
+          onPress={() => setIsCalenderVisible(false)}
+          style={{borderWidth: 2, borderColor: 'red'}}>
           <View style={styles.calendarViewedit}>
-            <DatePicker
+            {/* <DatePicker
               modal
               mode="date"
               open={isCalenderVisible}
               date={new Date()}
               onConfirm={date => {
-                console.log(date);
                 setCalenderDate(date);
               }}
               onCancel={() => {
                 setIsCalenderVisible(false);
               }}
-            />
-            {/* <Calendar
+            /> */}
+            <Calendar
               testID="calendarTestIdsz"
               onDayPress={(date: any) => setCalenderDate(date)}
               style={{borderRadius: 10, width: '90%', alignSelf: 'center'}}
-            /> */}
+            />
           </View>
-        </Modal>
-      </TouchableWithoutFeedback>
+        </TouchableWithoutFeedback>
+      </Modal>
     );
   };
 
@@ -143,13 +183,11 @@ const List = ({props, navigation, route}: any) => {
   ) => {
     // const calenderDate = moment(date.dateString).format('dd-mm-yyyy');
     let calenderDate = '';
-    console.log('date.dateString: ' + date.dateString);
     if (date.dateString) {
       calenderDate = `${date.day}-${date.month}-${date.year}`;
     } else {
       calenderDate = moment(date).format('DD-MM-YYYY');
     }
-    console.log(calenderDate);
     setDate(calenderDate);
     setIsCalenderVisible(false);
     // this.setState({showDates:date.dateString})
@@ -161,86 +199,74 @@ const List = ({props, navigation, route}: any) => {
     // });
   };
 
-  return (
-    <>
-      <Header title={fromScreen} />
-      <View style={styles.container}>
-        <FlatList
-          data={list}
-          keyExtractor={item => item.id.toString()}
-          renderItem={({item}) => (
-            <TouchableOpacity
-              style={[
-                styles.listItem,
-                {
-                  flex: 1,
-                  justifyContent: 'space-evenly',
-                  flexDirection: 'row',
-                  borderColor: 'green',
-                  borderWidth: 1,
-                },
-              ]}
-              onPress={() => handleEditItem(item)}>
-              <View
-                style={{
-                  borderColor: 'red',
-                  borderWidth: 1,
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'flex-start',
-                }}>
-                <View style={{}}>
-                  <Text style={styles.heading}>Total Amount:</Text>
-                  <Text style={styles.textUnderHeading}>
-                    ₹{item.totalAmount}
-                  </Text>
-                </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-                  <Text style={styles.heading}>Date: </Text>
-                  <Text style={[styles.textUnderHeading,{ fontSize: 14 }]}>{item.date}</Text>
+  const handleRemoveItem = (itemToRemove: ListItem | null) => {
+    if (!itemToRemove) return;
+
+    setList(prevList => {
+      const updatedList = prevList.filter(item => item.id !== itemToRemove.id);
+      return updatedList;
+    });
+    saveDataToStorage(); // Save the updated list immediately
+
+    setIsDeleteModalVisible(false);
+    setWantToDeleteItem(null);
+  };
+
+  const confirmDeleteModal = () => {
+    return (
+      <Modal
+        visible={isDeleteModalVisible}
+        transparent={true}
+        animationType="fade">
+        <TouchableWithoutFeedback
+          onPress={() => setIsDeleteModalVisible(false)}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text>Are you sure you want to delete this item?</Text>
+              <View>
+                <View style={styles.modalButtons}>
+                  <Button
+                    title="Cancel"
+                    onPress={() => {
+                      setIsDeleteModalVisible(false);
+                      setWantToDeleteItem(null);
+                    }}
+                  />
+                  <Button
+                    title="Delete"
+                    onPress={() => {
+                      handleRemoveItem(wantToDeleteItem);
+                    }}
+                  />
                 </View>
               </View>
-              <View
-                style={{
-                  borderColor: 'red',
-                  borderWidth: 1,
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>
-                <View style={{borderColor: 'red', borderWidth: 1, flex: 1}}>
-                  <Text style={styles.heading}>Quantity:</Text>
-                </View>
-                <View style={{borderColor: 'red', borderWidth: 1, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-                  <Text style={styles.styleForQuantity}>{item.quantity}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          )}
-          ListEmptyComponent={
-            <Text style={[styles.emptyText]}>No items yet.</Text>
-          }
-        />
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+    );
+  };
 
-        {/* Add Button */}
-        <TouchableOpacity
-          style={[styles.addButton, {backgroundColor: buttonColor}]}
-          onPress={handleAddItem}>
-          <Text style={styles.addButtonText}>+</Text>
-        </TouchableOpacity>
-
-        {/* Modal */}
-        <Modal visible={modalVisible} animationType="slide" transparent>
+  const addEntryModal = () => {
+    return (
+      <Modal visible={modalVisible} animationType="fade" transparent>
+        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
               <Text>Quantity : </Text>
+              {errorForQuantity && (
+                <Text style={styles.errorText}>* Quantity is required</Text>
+              )}
               <TextInput
                 placeholder="Enter Quantity"
                 placeholderTextColor={'black'}
                 style={styles.input}
                 keyboardType="numeric"
                 value={quantity}
-                onChangeText={setQuantity}
+                onChangeText={value => {
+                  setQuantity(value);
+                  setErrorForQuantity(false);
+                }}
               />
               <Text>Select Date : </Text>
               <View style={{flexDirection: 'row', alignItems: 'center'}}>
@@ -265,9 +291,339 @@ const List = ({props, navigation, route}: any) => {
               </View>
             </View>
           </View>
-        </Modal>
-        {calendarModals()}
+        </TouchableWithoutFeedback>
+      </Modal>
+    );
+  };
+
+  const getSumOfAllAmounts = () => {
+    return list.reduce((acc, item) => acc + item.totalAmount, 0);
+  };
+
+  const renderListItem = (item: any) => {
+    return (
+      <>
+        <TouchableOpacity
+          onPress={() => {
+            setIsDeleteModalVisible(true);
+            setWantToDeleteItem(item);
+          }}
+          style={{position: 'absolute', right: 0, top: 8, zIndex: 1}}>
+          <Image source={deleteImage} style={{height: 30, width: 30}} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.listItem,
+            {
+              flex: 1,
+              justifyContent: 'space-evenly',
+              flexDirection: 'row',
+              backgroundColor: listBackgroundColor,
+              // borderColor: 'green',
+              // borderWidth: 1,
+            },
+          ]}
+          onPress={() => handleEditItem(item)}>
+          <View style={{flex: 1, flexDirection: 'column'}}>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <Text style={[styles.heading, {marginVertical: 2, fontSize: 15}]}>
+                Date: {item.date}
+              </Text>
+            </View>
+            <View
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                backgroundColor: quantityContainerBackgroundColor,
+                borderRadius: 20,
+                paddingTop: 10,
+                paddingBottom: 10,
+                paddingLeft: 10,
+                paddingRight: 10,
+              }}>
+              {/* <View
+              style={{
+                borderColor: 'red',
+                borderWidth: 1,
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'flex-start',
+              }}>
+              <View style={{}}>
+                <Text style={styles.heading}>Total Amount:</Text>
+                <Text style={styles.textUnderHeading}>
+                  ₹{item.totalAmount}
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}>
+                <Text style={styles.heading}>Date: </Text>
+                <Text style={[styles.textUnderHeading, {fontSize: 14}]}>
+                  {item.date}
+                </Text>
+              </View>
+            </View> */}
+              <View
+                style={{
+                  // borderColor: 'red',
+                  // borderWidth: 1,
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <View
+                  style={{
+                    // borderColor: 'red', borderWidth: 1,
+                    flex: 1,
+                  }}>
+                  <Text style={styles.heading}>Total Amount:</Text>
+                </View>
+                <View
+                  style={{
+                    // borderColor: 'red',
+                    // borderWidth: 1,
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <Text style={styles.styleForQuantity}>
+                    ₹{item.totalAmount}
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={{
+                  // borderColor: 'red',
+                  // borderWidth: 1,
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <View
+                  style={{
+                    // borderColor: 'red', borderWidth: 1,
+                    flex: 1,
+                  }}>
+                  <Text style={styles.heading}>Quantity:</Text>
+                </View>
+                <View
+                  style={{
+                    // borderColor: 'red',
+                    // borderWidth: 1,
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <Text style={styles.styleForQuantity}>{item.quantity}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </>
+    );
+  };
+
+  return (
+    <>
+
+      <Header title={fromScreen} />
+      { 
+        loadingForPage ? (
+          <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            <ActivityIndicator size="large" color="#0000ff" />
+            <Text style={{textAlign:'center'}}>Loading...</Text>
+          </View>
+        ) : (
+          <>
+            <View
+        style={{
+          flexDirection: 'row',
+          height: 120,
+          padding: 10,
+          backgroundColor: '#f8f8f8',
+        }}>
+        <View
+          style={{
+            borderWidth: 2,
+            borderColor: 'rgb(255, 191, 28)',
+            flex: 1,
+            flexDirection: 'column',
+            borderRadius: 20,
+            marginRight: 5,
+            backgroundColor: 'rgb(253, 238, 169)',
+          }}>
+          <View
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+              // borderColor: 'red',
+              // borderWidth: 1,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+            }}>
+            <Text style={{fontWeight: '700'}}>Current Month</Text>
+          </View>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              // borderColor: 'orange',
+              // borderWidth: 1,
+              borderRadius: 20,
+              backgroundColor: 'rgb(255, 191, 28)',
+            }}>
+            <Text
+              style={{
+                fontSize: 40,
+                fontWeight: 'bold',
+                // borderColor: 'purple',
+                // borderWidth: 1,
+                flex: 1,
+                textAlignVertical: 'center',
+              }}>
+              ₹{getSumOfAllAmounts()}
+            </Text>
+          </View>
+        </View>
+        <View
+          style={{
+            borderWidth: 2,
+            borderColor: 'rgb(255, 191, 28)',
+            flex: 1,
+            flexDirection: 'column',
+            borderRadius: 22,
+            marginLeft: 5,
+            backgroundColor: 'rgb(253, 238, 169)',
+          }}>
+          <View
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+              // borderColor: 'red',
+              // borderWidth: 1,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+            }}>
+            <Text style={{fontWeight: '700'}}>Past Month</Text>
+          </View>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              // borderColor: 'orange',
+              // borderWidth: 1,
+              borderRadius: 20,
+              backgroundColor: 'rgb(255, 191, 28)',
+            }}>
+            <Text
+              style={{
+                fontSize: 40,
+                fontWeight: 'bold',
+                // borderColor: 'purple',
+                // borderWidth: 1,
+                flex: 1,
+                textAlignVertical: 'center',
+              }}>
+              ₹{'0'}
+            </Text>
+          </View>
+        </View>
       </View>
+      <View
+        style={{
+          flexDirection: 'column',
+          padding: 10,
+          backgroundColor: '#f8f8f8',
+        }}>
+        <Text style={[styles.heading, {fontSize: 20}]}>{fromScreen} List</Text>
+        <View
+          style={{borderWidth: 1, borderColor: '#686868', marginBottom: -4}}
+        />
+      </View>
+      <View style={styles.container}>
+        <FlatList
+          data={list}
+          keyExtractor={item => item.id.toString()}
+          renderItem={({item}) => renderListItem(item)}
+          showsVerticalScrollIndicator={false}
+          style={{marginBottom: dynamicMarginBottom}}
+          ListEmptyComponent={
+            <View
+              style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+              {loadingForList ? (
+                <>
+                  <ActivityIndicator size="large" color="#00cc88" />
+                  <Text>Loading...</Text>
+                </>
+              ) : (
+                <Text style={[styles.emptyText]}>No items yet.</Text>
+              )}
+            </View>
+          }
+          onStartReached={() => {
+            setdynamicMarginBottom(0);
+          }}
+          // onStartReachedThreshold={0.1}
+          onEndReachedThreshold={0.4}
+          onEndReached={() => {
+            setdynamicMarginBottom(45);
+          }}
+        />
+
+        {/* <View
+          style={{
+            height: 45,
+            borderColor: 'red',
+            borderWidth: 1,
+            backgroundColor: 'rgba(0, 0, 0,0.0)',
+            bottom: 0,
+            width: '105%',
+            zIndex: -1,
+          }}></View> */}
+
+        {/* Add Button */}
+        <TouchableOpacity
+          style={[styles.addButton, {backgroundColor: buttonColor}]}
+          onPress={handleAddItem}>
+          <Text style={styles.addButtonText}>+</Text>
+        </TouchableOpacity>
+
+        {/* Modal */}
+
+        {/* <View
+          style={{
+            // borderColor: 'red',
+            // borderWidth: 1,
+            height: 90,
+            // filter: 'blur(20px)',
+            position: 'absolute',
+            bottom: 0,
+            width: '105%',
+            borderRadius: 20,
+            backgroundColor: 'rgba(255, 255, 255,0.6)', // Fallback color for semi-transparency
+            filter: 'blur(20px)', // Native blur effect
+            overflow: 'visible', // Ensures the blur respects the border radius
+          }} /> */}
+      </View>
+      {addEntryModal()}
+      {calendarModals()}
+      {confirmDeleteModal()}
+      </>
+        )
+      }
+      
     </>
   );
 };
@@ -276,13 +632,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
-    padding: 10,
+    paddingTop: 10,
+    paddingHorizontal: 10,
+    // borderColor:'red',
+    // borderWidth: 2,
+    paddingBottom: 45,
+    // overflow: 'visible',
   },
   listItem: {
     backgroundColor: '#fff',
-    padding: 15,
-    marginVertical: 10,
-    borderRadius: 8,
+    paddingTop: 3,
+    paddingBottom: 10,
+    paddingHorizontal: 10,
+    marginVertical: 8,
+    borderRadius: 20,
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowRadius: 5,
@@ -364,7 +727,12 @@ const styles = StyleSheet.create({
   styleForQuantity: {
     fontWeight: 'bold',
     fontSize: 40,
-  }
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 5,
+  },
 });
 
 export default List;

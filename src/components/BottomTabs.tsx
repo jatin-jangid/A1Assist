@@ -39,24 +39,43 @@ export default function AppNavigator() {
         },
         tabBarLabelStyle: styles.iconText,
         tabBarStyle: styles.tabbarStyle,
+        unmountOnBlur: true,
       })}>
       <Tab.Screen
         name="Wash"
         component={List}
         options={{headerShown: false}}
-        initialParams={{fromScreen : 'Wash', buttonColor: '#00becc', rates: 12}}
+        initialParams={{
+          fromScreen: 'Wash',
+          buttonColor: '#00becc',
+          rates: 12,
+          listBackgroundColor: '#c6fbff',
+          quantityContainerBackgroundColor: '#27f1ff',
+        }}
       />
       <Tab.Screen
         name="Press"
         component={List}
         options={{headerShown: false}}
-        initialParams={{fromScreen : 'Press', buttonColor: '#00cc88', rates: 4}}
+        initialParams={{
+          fromScreen: 'Press',
+          buttonColor: '#00cc88',
+          rates: 4,
+          listBackgroundColor: '#c1ffea',
+          quantityContainerBackgroundColor: '#4fffc4',
+        }}
       />
       <Tab.Screen
         name="Roll"
         component={List}
         options={{headerShown: false}}
-        initialParams={{fromScreen : 'Roll', buttonColor: '#rgb(255, 191, 28)', rates: 20}}
+        initialParams={{
+          fromScreen: 'Roll',
+          buttonColor: '#rgb(255, 191, 28)',
+          rates: 20,
+          listBackgroundColor: 'rgb(253, 238, 169)',
+          quantityContainerBackgroundColor: 'rgb(255, 191, 28)',
+        }}
       />
     </Tab.Navigator>
   );
@@ -85,8 +104,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(250, 244, 223)',
     position: 'absolute',
     bottom: 10,
-    left: 20,
-    right: 20,
+    left: 10,
+    right: 10,
     borderRadius: 40,
     borderTopWidth: 0,
     shadowColor: '#000000',
@@ -94,8 +113,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 5,
     elevation: 5,
-    width: '90%',
-    marginLeft: '5%',
+    width: '95%',
+    marginLeft: '2.5%',
   },
   extraView: {
     position: 'absolute',

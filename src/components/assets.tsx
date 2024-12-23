@@ -5,3 +5,5 @@ export const washOutlined = require('../../assets/wash-outlined.png');
 export const roll = require('../../assets/roll.png');
 export const rollOutlined = require('../../assets/roll-outlined.png');
 export const calenderImage = require('../../assets/calendar.png');
+export const deleteImage = require('../../assets/remove.png');
+export const deleteImage2 = require('../../assets/delete.png');
