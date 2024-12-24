@@ -40,13 +40,14 @@ const List = ({props, navigation, route}: any) => {
   const [errorForQuantity, setErrorForQuantity] = useState(false);
   const [dynamicMarginBottom, setdynamicMarginBottom] = useState(0);
   const [loadingForPage, setLoadingForPage] = useState(true);
-  const [loadingForList, setLoadingForList] = useState(true)
+  const [loadingForList, setLoadingForList] = useState(true);
   const {
     buttonColor,
     fromScreen,
     rates,
     listBackgroundColor,
     quantityContainerBackgroundColor,
+    headerColor,
   } = route.params;
 
   useEffect(() => {
@@ -56,7 +57,7 @@ const List = ({props, navigation, route}: any) => {
 
   useEffect(() => {
     saveDataToStorage();
-    setLoadingForList(true)
+    setLoadingForList(true);
     // const sortedData = [...list].sort(
     //   (a, b) =>
     //     new Date(b.date.split('-').reverse().join('-')).getTime() -
@@ -77,23 +78,23 @@ const List = ({props, navigation, route}: any) => {
       if (data) {
         setList(JSON.parse(data));
         setLoadingForPage(false);
-        setLoadingForList(false)
+        setLoadingForList(false);
       }
     } catch (error) {
       console.error('Error reading data from storage:', error);
       setLoadingForPage(false);
-      setLoadingForList(false)
+      setLoadingForList(false);
     }
   };
   const saveDataToStorage = async () => {
     try {
       await AsyncStorage.setItem(fromScreen, JSON.stringify(list));
       setLoadingForPage(false);
-      setLoadingForList(false)
+      setLoadingForList(false);
     } catch (error) {
       console.error('Error saving data to storage:', error);
       setLoadingForPage(false);
-      setLoadingForList(false)
+      setLoadingForList(false);
     }
   };
 
@@ -143,11 +144,8 @@ const List = ({props, navigation, route}: any) => {
   const calendarModals = () => {
     return (
       <Modal visible={isCalenderVisible} transparent={true}>
-        <TouchableWithoutFeedback
-          onPress={() => setIsCalenderVisible(false)}
-          style={{borderWidth: 2, borderColor: 'red'}}>
-          <View style={styles.calendarViewedit}>
-            {/* <DatePicker
+        <View style={styles.calendarViewedit}>
+          {/* <DatePicker
               modal
               mode="date"
               open={isCalenderVisible}
@@ -159,13 +157,12 @@ const List = ({props, navigation, route}: any) => {
                 setIsCalenderVisible(false);
               }}
             /> */}
-            <Calendar
-              testID="calendarTestIdsz"
-              onDayPress={(date: any) => setCalenderDate(date)}
-              style={{borderRadius: 10, width: '90%', alignSelf: 'center'}}
-            />
-          </View>
-        </TouchableWithoutFeedback>
+          <Calendar
+            testID="calendarTestIdsz"
+            onDayPress={(date: any) => setCalenderDate(date)}
+            style={{borderRadius: 10, width: '90%', alignSelf: 'center'}}
+          />
+        </View>
       </Modal>
     );
   };
@@ -218,31 +215,28 @@ const List = ({props, navigation, route}: any) => {
         visible={isDeleteModalVisible}
         transparent={true}
         animationType="fade">
-        <TouchableWithoutFeedback
-          onPress={() => setIsDeleteModalVisible(false)}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text>Are you sure you want to delete this item?</Text>
-              <View>
-                <View style={styles.modalButtons}>
-                  <Button
-                    title="Cancel"
-                    onPress={() => {
-                      setIsDeleteModalVisible(false);
-                      setWantToDeleteItem(null);
-                    }}
-                  />
-                  <Button
-                    title="Delete"
-                    onPress={() => {
-                      handleRemoveItem(wantToDeleteItem);
-                    }}
-                  />
-                </View>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text>Are you sure you want to delete this item?</Text>
+            <View>
+              <View style={styles.modalButtons}>
+                <Button
+                  title="Cancel"
+                  onPress={() => {
+                    setIsDeleteModalVisible(false);
+                    setWantToDeleteItem(null);
+                  }}
+                />
+                <Button
+                  title="Delete"
+                  onPress={() => {
+                    handleRemoveItem(wantToDeleteItem);
+                  }}
+                />
               </View>
             </View>
           </View>
-        </TouchableWithoutFeedback>
+        </View>
       </Modal>
     );
   };
@@ -250,48 +244,46 @@ const List = ({props, navigation, route}: any) => {
   const addEntryModal = () => {
     return (
       <Modal visible={modalVisible} animationType="fade" transparent>
-        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text>Quantity : </Text>
-              {errorForQuantity && (
-                <Text style={styles.errorText}>* Quantity is required</Text>
-              )}
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text>Quantity : </Text>
+            {errorForQuantity && (
+              <Text style={styles.errorText}>* Quantity is required</Text>
+            )}
+            <TextInput
+              placeholder="Enter Quantity"
+              placeholderTextColor={'#949494'}
+              style={styles.input}
+              keyboardType="numeric"
+              value={quantity}
+              onChangeText={value => {
+                setQuantity(value);
+                setErrorForQuantity(false);
+              }}
+            />
+            <Text>Select Date : </Text>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <TextInput
-                placeholder="Enter Quantity"
+                placeholder="Enter Date"
                 placeholderTextColor={'black'}
                 style={styles.input}
-                keyboardType="numeric"
-                value={quantity}
-                onChangeText={value => {
-                  setQuantity(value);
-                  setErrorForQuantity(false);
-                }}
+                value={date}
+                onChangeText={setDate}
+                editable={false}
               />
-              <Text>Select Date : </Text>
-              <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                <TextInput
-                  placeholder="Enter Date"
-                  placeholderTextColor={'black'}
-                  style={styles.input}
-                  value={date}
-                  onChangeText={setDate}
-                  editable={false}
+              <TouchableOpacity onPress={() => setIsCalenderVisible(true)}>
+                <Image
+                  source={calenderImage}
+                  style={{height: 25, width: 25, left: -40, zIndex: 1}}
                 />
-                <TouchableOpacity onPress={() => setIsCalenderVisible(true)}>
-                  <Image
-                    source={calenderImage}
-                    style={{height: 25, width: 25, left: -40, zIndex: 1}}
-                  />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.modalButtons}>
-                <Button title="Cancel" onPress={() => setModalVisible(false)} />
-                <Button title="Save" onPress={handleSaveItem} />
-              </View>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalButtons}>
+              <Button title="Cancel" onPress={() => setModalVisible(false)} />
+              <Button title="Save" onPress={handleSaveItem} />
             </View>
           </View>
-        </TouchableWithoutFeedback>
+        </View>
       </Modal>
     );
   };
@@ -435,154 +427,173 @@ const List = ({props, navigation, route}: any) => {
 
   return (
     <>
-
-      <Header title={fromScreen} />
-      { 
-        loadingForPage ? (
-          <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <ActivityIndicator size="large" color="#0000ff" />
-            <Text style={{textAlign:'center'}}>Loading...</Text>
-          </View>
-        ) : (
-          <>
-            <View
-        style={{
-          flexDirection: 'row',
-          height: 120,
-          padding: 10,
-          backgroundColor: '#f8f8f8',
-        }}>
-        <View
-          style={{
-            borderWidth: 2,
-            borderColor: 'rgb(255, 191, 28)',
-            flex: 1,
-            flexDirection: 'column',
-            borderRadius: 20,
-            marginRight: 5,
-            backgroundColor: 'rgb(253, 238, 169)',
-          }}>
-          <View
-            style={{
-              justifyContent: 'center',
-              alignItems: 'center',
-              // borderColor: 'red',
-              // borderWidth: 1,
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-            }}>
-            <Text style={{fontWeight: '700'}}>Current Month</Text>
-          </View>
-          <View
-            style={{
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-              // borderColor: 'orange',
-              // borderWidth: 1,
-              borderRadius: 20,
-              backgroundColor: 'rgb(255, 191, 28)',
-            }}>
-            <Text
-              style={{
-                fontSize: 40,
-                fontWeight: 'bold',
-                // borderColor: 'purple',
-                // borderWidth: 1,
-                flex: 1,
-                textAlignVertical: 'center',
-              }}>
-              ₹{getSumOfAllAmounts()}
-            </Text>
-          </View>
+      <Header title={fromScreen} backgroundColor={headerColor} />
+      {loadingForPage ? (
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text style={{textAlign: 'center'}}>Loading...</Text>
         </View>
-        <View
-          style={{
-            borderWidth: 2,
-            borderColor: 'rgb(255, 191, 28)',
-            flex: 1,
-            flexDirection: 'column',
-            borderRadius: 22,
-            marginLeft: 5,
-            backgroundColor: 'rgb(253, 238, 169)',
-          }}>
-          <View
-            style={{
-              justifyContent: 'center',
-              alignItems: 'center',
-              // borderColor: 'red',
-              // borderWidth: 1,
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-            }}>
-            <Text style={{fontWeight: '700'}}>Past Month</Text>
-          </View>
-          <View
-            style={{
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-              // borderColor: 'orange',
-              // borderWidth: 1,
-              borderRadius: 20,
-              backgroundColor: 'rgb(255, 191, 28)',
-            }}>
-            <Text
-              style={{
-                fontSize: 40,
-                fontWeight: 'bold',
-                // borderColor: 'purple',
-                // borderWidth: 1,
-                flex: 1,
-                textAlignVertical: 'center',
-              }}>
-              ₹{'0'}
-            </Text>
-          </View>
-        </View>
-      </View>
-      <View
-        style={{
-          flexDirection: 'column',
-          padding: 10,
-          backgroundColor: '#f8f8f8',
-        }}>
-        <Text style={[styles.heading, {fontSize: 20}]}>{fromScreen} List</Text>
-        <View
-          style={{borderWidth: 1, borderColor: '#686868', marginBottom: -4}}
-        />
-      </View>
-      <View style={styles.container}>
-        <FlatList
-          data={list}
-          keyExtractor={item => item.id.toString()}
-          renderItem={({item}) => renderListItem(item)}
-          showsVerticalScrollIndicator={false}
-          style={{marginBottom: dynamicMarginBottom}}
-          ListEmptyComponent={
+      ) : (
+        <>
+          <View style={{backgroundColor: headerColor}}>
             <View
-              style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-              {loadingForList ? (
-                <>
-                  <ActivityIndicator size="large" color="#00cc88" />
-                  <Text>Loading...</Text>
-                </>
-              ) : (
-                <Text style={[styles.emptyText]}>No items yet.</Text>
-              )}
+              style={{
+                flexDirection: 'row',
+                height: 120,
+                padding: 10,
+                backgroundColor: '#f8f8f8',
+                borderTopStartRadius: 20,
+                borderTopEndRadius: 20,
+                shadowColor: '#000',
+                shadowOpacity: 0.3,
+                shadowRadius: 5,
+                elevation: 5,
+              }}>
+              <View
+                style={{
+                  borderWidth: 2,
+                  borderColor: 'rgb(255, 191, 28)',
+                  flex: 1,
+                  flexDirection: 'column',
+                  borderRadius: 20,
+                  marginRight: 5,
+                  backgroundColor: 'rgb(253, 238, 169)',
+                }}>
+                <View
+                  style={{
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    // borderColor: 'red',
+                    // borderWidth: 1,
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                  }}>
+                  <Text style={{fontWeight: '700'}}>Current Month</Text>
+                </View>
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    // borderColor: 'orange',
+                    // borderWidth: 1,
+                    borderRadius: 20,
+                    backgroundColor: 'rgb(255, 191, 28)',
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: 40,
+                      fontWeight: 'bold',
+                      // borderColor: 'purple',
+                      // borderWidth: 1,
+                      flex: 1,
+                      textAlignVertical: 'center',
+                    }}>
+                    ₹{getSumOfAllAmounts()}
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={{
+                  borderWidth: 2,
+                  borderColor: 'rgb(255, 191, 28)',
+                  flex: 1,
+                  flexDirection: 'column',
+                  borderRadius: 22,
+                  marginLeft: 5,
+                  backgroundColor: 'rgb(253, 238, 169)',
+                }}>
+                <View
+                  style={{
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    // borderColor: 'red',
+                    // borderWidth: 1,
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                  }}>
+                  <Text style={{fontWeight: '700'}}>Past Month</Text>
+                </View>
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    // borderColor: 'orange',
+                    // borderWidth: 1,
+                    borderRadius: 20,
+                    backgroundColor: 'rgb(255, 191, 28)',
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: 40,
+                      fontWeight: 'bold',
+                      // borderColor: 'purple',
+                      // borderWidth: 1,
+                      flex: 1,
+                      textAlignVertical: 'center',
+                    }}>
+                    ₹{'0'}
+                  </Text>
+                </View>
+              </View>
             </View>
-          }
-          onStartReached={() => {
-            setdynamicMarginBottom(0);
-          }}
-          // onStartReachedThreshold={0.1}
-          onEndReachedThreshold={0.4}
-          onEndReached={() => {
-            setdynamicMarginBottom(45);
-          }}
-        />
+            <View
+              style={{
+                flexDirection: 'column',
+                padding: 10,
+                backgroundColor: '#f8f8f8',
+              }}>
+              <Text style={[styles.heading, {fontSize: 20}]}>
+                {fromScreen} List
+              </Text>
+              <View
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#686868',
+                  marginBottom: -4,
+                }}
+              />
+            </View>
+          </View>
+          <View style={styles.container}>
+            <FlatList
+              data={list}
+              keyExtractor={item => item.id.toString()}
+              renderItem={({item}) => renderListItem(item)}
+              showsVerticalScrollIndicator={false}
+              style={{marginBottom: dynamicMarginBottom}}
+              ListEmptyComponent={
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  {loadingForList ? (
+                    <>
+                      <ActivityIndicator size="large" color="#00cc88" />
+                      <Text>Loading...</Text>
+                    </>
+                  ) : (
+                    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', height: 200, width: "100%"}}>
 
-        {/* <View
+                    <Text style={[styles.emptyText]}>No items yet.</Text>
+                    </View>
+                  )}
+                </View>
+              }
+              onStartReached={() => {
+                setdynamicMarginBottom(0);
+              }}
+              // onStartReachedThreshold={0.1}
+              onEndReachedThreshold={0.4}
+              onEndReached={() => {
+                setdynamicMarginBottom(45);
+              }}
+            />
+
+            {/* <View
           style={{
             height: 45,
             borderColor: 'red',
@@ -593,16 +604,16 @@ const List = ({props, navigation, route}: any) => {
             zIndex: -1,
           }}></View> */}
 
-        {/* Add Button */}
-        <TouchableOpacity
-          style={[styles.addButton, {backgroundColor: buttonColor}]}
-          onPress={handleAddItem}>
-          <Text style={styles.addButtonText}>+</Text>
-        </TouchableOpacity>
+            {/* Add Button */}
+            <TouchableOpacity
+              style={[styles.addButton, {backgroundColor: buttonColor}]}
+              onPress={handleAddItem}>
+              <Text style={styles.addButtonText}>+</Text>
+            </TouchableOpacity>
 
-        {/* Modal */}
+            {/* Modal */}
 
-        {/* <View
+            {/* <View
           style={{
             // borderColor: 'red',
             // borderWidth: 1,
@@ -616,14 +627,12 @@ const List = ({props, navigation, route}: any) => {
             filter: 'blur(20px)', // Native blur effect
             overflow: 'visible', // Ensures the blur respects the border radius
           }} /> */}
-      </View>
-      {addEntryModal()}
-      {calendarModals()}
-      {confirmDeleteModal()}
-      </>
-        )
-      }
-      
+          </View>
+          {addEntryModal()}
+          {calendarModals()}
+          {confirmDeleteModal()}
+        </>
+      )}
     </>
   );
 };
@@ -658,8 +667,8 @@ const styles = StyleSheet.create({
   emptyText: {
     textAlign: 'center',
     fontSize: 18,
-    color: '#999',
-    marginTop: 20,
+    color: '#414141',
+    // marginTop: 20,
   },
   addButton: {
     position: 'absolute',

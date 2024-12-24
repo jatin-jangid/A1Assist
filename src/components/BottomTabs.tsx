@@ -23,7 +23,8 @@ const getIcon = (name: string, focused: boolean) => {
       return require('../../assets/wash-outlined.png');
   }
 };
-
+// headerColor options : #fff0ad
+const headerColor = '#fff09a'
 export default function AppNavigator() {
   return (
     <Tab.Navigator
@@ -51,6 +52,7 @@ export default function AppNavigator() {
           rates: 12,
           listBackgroundColor: '#c6fbff',
           quantityContainerBackgroundColor: '#27f1ff',
+          headerColor: headerColor,
         }}
       />
       <Tab.Screen
@@ -63,6 +65,7 @@ export default function AppNavigator() {
           rates: 4,
           listBackgroundColor: '#c1ffea',
           quantityContainerBackgroundColor: '#4fffc4',
+          headerColor: headerColor,
         }}
       />
       <Tab.Screen
@@ -75,6 +78,7 @@ export default function AppNavigator() {
           rates: 20,
           listBackgroundColor: 'rgb(253, 238, 169)',
           quantityContainerBackgroundColor: 'rgb(255, 191, 28)',
+          headerColor: headerColor,
         }}
       />
     </Tab.Navigator>

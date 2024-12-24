@@ -1,9 +1,9 @@
 import {StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 
-const Header = (props: {title: string}) => {
+const Header = (props: {title: string, backgroundColor: string}) => {
   return (
-    <View style={styles.headerView}>
+    <View style={[styles.headerView,{ backgroundColor: props.backgroundColor}]}>
       <Text style={styles.headerText}>{props.title}</Text>
     </View>
   );
